@@ -5,6 +5,25 @@ from django.utils.safestring import mark_safe
 from .models import User
 
 
+class IsActiveListFilter(admin.SimpleListFilter):
+    title = '有効フラグ'
+    parameter_name = 'is_active'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('True', '有効'),
+            ('False', '無効')
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'True':
+            return queryset.filter(is_active=True)
+        elif self.value() == 'False':
+            return queryset.filter(is_active=False)
+        else:
+            return queryset.all()
+
+
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
@@ -26,6 +45,7 @@ class UserAdmin(admin.ModelAdmin):
 
     list_display = ['username', 'name', 'email', 'merge_address']
     ordering = ['username']
+    list_filter = [IsActiveListFilter]
 
     def name(self, obj):
         return obj.last_name + ' ' + obj.first_name
