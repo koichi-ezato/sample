@@ -46,6 +46,7 @@ class UserAdmin(admin.ModelAdmin):
     list_display = ['username', 'name', 'email', 'merge_address']
     ordering = ['username']
     list_filter = [IsActiveListFilter]
+    actions = None
 
     def name(self, obj):
         return obj.last_name + ' ' + obj.first_name
