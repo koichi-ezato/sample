@@ -2,6 +2,12 @@ from django.contrib import admin
 from django.contrib.auth.hashers import make_password
 from django.utils.safestring import mark_safe
 
+from import_export import resources
+from import_export import fields
+from import_export.admin import ExportMixin
+from import_export.formats import base_formats
+
+
 from .models import User
 
 
@@ -24,8 +30,22 @@ class IsActiveListFilter(admin.SimpleListFilter):
             return queryset.all()
 
 
+class UserResource(resources.ModelResource):
+    custom_field = fields.Field(column_name='カスタムフィールド')
+
+    def dehydrate_custom_field(self, data: User):
+        return '{0:%Y/%-m/%-d}'.format(data.date_joined)
+
+    def after_export(self, queryset, data, *args, **kwargs):
+        data.headers = []
+
+    class Meta:
+        model = User
+        fields = ['custom_field']
+
+
 @admin.register(User)
-class UserAdmin(admin.ModelAdmin):
+class UserAdmin(ExportMixin, admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         """
         モデルの保存
@@ -47,6 +67,15 @@ class UserAdmin(admin.ModelAdmin):
     ordering = ['username']
     list_filter = [IsActiveListFilter]
     actions = None
+
+    resource_class = UserResource
+    formats = [base_formats.CSV]
+    base_formats.CSV.CONTENT_TYPE = 'text/csv; charset=CP932'
+
+    def get_export_filename(self, request, queryset, file_format):
+        filename = "%s.%s" % ("Sample",
+                              file_format.get_extension())
+        return filename
 
     def name(self, obj):
         return obj.last_name + ' ' + obj.first_name
