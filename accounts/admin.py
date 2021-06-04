@@ -44,6 +44,52 @@ class UserResource(resources.ModelResource):
         fields = ['custom_field']
 
 
+class InputFilter(admin.SimpleListFilter):
+    template = 'admin/input_filter.html'
+
+    def lookups(self, request, model_admin):
+        # Dummy, required to show the filter.
+        return ((),)
+
+    def choices(self, changelist):
+        # Grab only the "all" option.
+        all_choice = next(super().choices(changelist))
+        all_choice['query_parts'] = (
+            (k, v)
+            for k, v in changelist.get_filters_params().items()
+            if k != self.parameter_name
+        )
+        yield all_choice
+
+
+class NameFilter(InputFilter):
+    parameter_name = 'last_name'
+    title = '苗字'
+
+    def queryset(self, request, queryset):
+        if self.value() is not None:
+            last_name = self.value()
+
+            if last_name is None:
+                return
+
+            return queryset.filter(last_name__icontains=last_name)
+
+
+class EmailFilter(InputFilter):
+    parameter_name = 'email'
+    title = 'メールアドレス'
+
+    def queryset(self, request, queryset):
+        if self.value() is not None:
+            email = self.value()
+
+            if email is None:
+                return
+
+            return queryset.filter(email__icontains=email)
+
+
 @admin.register(User)
 class UserAdmin(ExportMixin, admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
@@ -65,8 +111,10 @@ class UserAdmin(ExportMixin, admin.ModelAdmin):
 
     list_display = ['username', 'name', 'email', 'merge_address']
     ordering = ['username']
-    list_filter = [IsActiveListFilter]
+    list_filter = [IsActiveListFilter, NameFilter, EmailFilter]
     actions = None
+    search_fields = ['name', 'email']
+    # list_display_links = None
 
     resource_class = UserResource
     formats = [base_formats.CSV]
