@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'import_export',
+    'admin_auto_filters',
+    'rangefilter',
     'sample',
     'accounts.apps.AccountsConfig',
 ]

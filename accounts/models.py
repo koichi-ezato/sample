@@ -128,3 +128,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def get_full_name(self):
         return self.last_name + ' ' + self.first_name
+
+
+class UserProxy(User):
+    class Meta:
+        proxy = True

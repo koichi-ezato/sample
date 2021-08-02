@@ -1,3 +1,4 @@
+from admin_auto_filters.filters import AutocompleteFilter
 from django.contrib import admin
 from django.contrib.auth.hashers import make_password
 from django.utils.safestring import mark_safe
@@ -7,8 +8,9 @@ from import_export import fields
 from import_export.admin import ExportMixin
 from import_export.formats import base_formats
 
+from rangefilter.filters import DateRangeFilter, DateTimeRangeFilter
 
-from .models import User, Belong
+from .models import User, Belong, UserProxy
 
 
 class IsActiveListFilter(admin.SimpleListFilter):
@@ -90,6 +92,16 @@ class EmailFilter(InputFilter):
             return queryset.filter(email__icontains=email)
 
 
+class BelongFilter(AutocompleteFilter):
+    title = '所属'
+    field_name = 'belong'
+
+
+@admin.register(UserProxy)
+class UserAdminSimple(admin.ModelAdmin):
+    pass
+
+
 @admin.register(User)
 class UserAdmin(ExportMixin, admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
@@ -109,9 +121,10 @@ class UserAdmin(ExportMixin, admin.ModelAdmin):
             obj.password = make_password(obj.password)
         obj.save()
 
-    list_display = ['username', 'name', 'email', 'merge_address']
+    list_display = ['username', 'name', 'email', 'merge_address', 'date_joined']
     ordering = ['username']
-    list_filter = [IsActiveListFilter, NameFilter, EmailFilter]
+    list_filter = [BelongFilter, IsActiveListFilter, NameFilter, EmailFilter,
+                   ['date_joined', DateRangeFilter]]
     actions = None
     search_fields = ['name', 'email']
     # list_display_links = None
@@ -149,3 +162,4 @@ class UserAdmin(ExportMixin, admin.ModelAdmin):
 @admin.register(Belong)
 class BelongAdmin(admin.ModelAdmin):
     list_display = ['name', 'delete_flg']
+    search_fields = ['name']
