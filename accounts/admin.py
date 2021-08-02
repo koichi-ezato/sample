@@ -8,7 +8,7 @@ from import_export.admin import ExportMixin
 from import_export.formats import base_formats
 
 
-from .models import User
+from .models import User, Belong
 
 
 class IsActiveListFilter(admin.SimpleListFilter):
@@ -144,3 +144,8 @@ class UserAdmin(ExportMixin, admin.ModelAdmin):
         return mark_safe(address)
 
     merge_address.short_description = '住所'
+
+
+@admin.register(Belong)
+class BelongAdmin(admin.ModelAdmin):
+    list_display = ['name', 'delete_flg']

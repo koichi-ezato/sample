@@ -49,6 +49,17 @@ class UserManager(BaseUserManager):
         return user
 
 
+class Belong(models.Model):
+    """
+    所属先
+    """
+    name = models.CharField(verbose_name='名称', max_length=10)
+    delete_flg = models.BooleanField(verbose_name='削除フラグ', default=False)
+
+    def __str__(self):
+        return self.name
+
+
 class User(AbstractBaseUser, PermissionsMixin):
     """
     ユーザモデル
@@ -99,6 +110,8 @@ class User(AbstractBaseUser, PermissionsMixin):
                                     default=True)
     is_staff = models.BooleanField(verbose_name='管理サイトアクセス権限',
                                    default=False)
+    belong = models.ForeignKey(to=Belong, on_delete=models.CASCADE, default=None, null=True, blank=True,
+                               limit_choices_to={"delete_flg": False})
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email', 'last_name', 'first_name']
